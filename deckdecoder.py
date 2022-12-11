@@ -2,67 +2,72 @@ from hearthstone.deckstrings import Deck
 from hearthstone.enums import FormatType
 from hsapi import *
 from topSort import DirectedGraph, toposort
+from classes import classes
 
 cards = getStandard()
+prompt = input("decode or encode: ")
 
-if input("decode or encode: ") == "decode": 
-    deckCode = ''
+while prompt != "close":
+    if prompt == "decode": 
+        deckCode = ''
 
-    deckCode = input("Enter a deck list code: ")
-    try:
-        deck = Deck.from_deckstring(deckCode)
-        deckIds = deck.get_dbf_id_list()
-        print(deckIds)
+        deckCode = input("Enter a deck list code: ")
+        try:
+            deck = Deck.from_deckstring(deckCode)
+            deckIds = deck.get_dbf_id_list()
+            hero = deck.heroes[0]
 
-        outputDeck = []
+            outputDeck = []
 
-        for i in range(len(deckIds)):
-            card = cards.getCard(deckIds[i][0])
-            card.amount = deckIds[i][1]
+            for i in range(len(deckIds)):
+                card = cards.getCard(deckIds[i][0])
+                card.amount = deckIds[i][1]
+                outputDeck.append(card)
+            for card in outputDeck:
+                for next in outputDeck:
+                    if card.cost < next.cost:
+                        card.addEdgeTo(next)
+                    
+            graph = DirectedGraph(outputDeck)
+            graph.updateAll()
+            toposort(graph)
 
-            outputDeck.append(card)
-        for card in outputDeck:
-            for next in outputDeck:
-                if card.cost < next.cost:
-                    card.addEdgeTo(next)
-                
-        graph = DirectedGraph(outputDeck)
-        graph.updateAll()
-        toposort(graph)
+        except(ValueError):
+            print("Invalid decklist")
 
-    except(ValueError):
-        print("Invalid decklist")
+    elif prompt == 'encode': 
+        temp = input("Enter a class: ")
+        hero = [heroes for heroes in classes if classes[heroes]==temp]
+        decklist = []
+        print("Enter decklist: ")
 
-else: 
-    decklist = []
-    print("Enter decklist: ")
-
-    line = input()
-    while line != 'x':
-        decklist.append(line)
         line = input()
-    print(decklist)
-    dbfIdList = []
-    
-    for card in decklist:
-        amount = card[:card.index('x')]
-        cost = card[card.index('(')+1:card.index(')')]
-        name = card[card.index(')')+2:]
+        while line != 'close':
+            decklist.append(line)
+            line = input()
+        dbfIdList = []
+        try:
+            for card in decklist:
+                amount = card[:card.index('x')]
+                cost = card[card.index('(')+1:card.index(')')]
+                name = card[card.index(')')+2:]
 
-        print(f'amount: {amount}, cost: {cost}, name: {name}')
+                response = cards.getCardName(name)
+                id = response.value
 
-        response = cards.getCardName(name)
-        # print(f'response.name: {response.name}, response.value: {response.value}')
-        id = response.value
+                tup = (id, int(amount))
+                dbfIdList.append(tup)
 
-        tup = (id, int(amount))
-        dbfIdList.append(tup)
+            deck = Deck()
+            deck.cards = dbfIdList
+            deck.heroes = hero
+            deck.format = FormatType.FT_STANDARD
+            print(deck.as_deckstring)
 
-    deck = Deck()
-    deck.cards = dbfIdList
-    deck.heroes = [2]
-    deck.format = FormatType.FT_STANDARD
-    print(deck.as_deckstring)
+        except(ValueError):
+            print("Invalid decklist")
+
+    prompt = input("decode or encode: ")
 
 ### Reno my beloved <3
 # Class: Rogue

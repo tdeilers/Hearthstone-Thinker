@@ -9,23 +9,9 @@ Standard = {
     3:"Fractured in Alterac Valley",
     4:"Voyage to the Sunken City",
     5:"Murder at Castle Nathria",
-    6:"March of the Lich King"
+    6:"March of the Lich King",
+    7:"Path of Arthas"
 }
-
-def searchByName(card): 
-
-    url = f"https://omgvamp-hearthstone-v1.p.rapidapi.com/cards/{card}"
-
-    querystring = {"collectible":"1"}
-
-    headers = {
-        "X-RapidAPI-Key": "0a3684b998mshc7e210e9d44a937p1f6df0jsn3c92be12a993",
-        "X-RapidAPI-Host": "omgvamp-hearthstone-v1.p.rapidapi.com"
-    }
-
-    response = requests.request("GET", url, headers=headers, params=querystring).json()
-
-    return response
 
 def getSet(set):
 

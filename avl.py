@@ -1,4 +1,8 @@
 from node import Node
+import string
+
+def equal(a, b):
+    return [c for c in a if c.isalpha()] == [c for c in b if c.isalpha()]
 
 class AVL:
     def __init__(self):
@@ -155,7 +159,7 @@ class AVL:
     def cardNameHelper(self, node, value):
 
         # Stop when finding a matching value and return true
-        if value == node.name: 
+        if equal(value,node.name): 
             return node
 
         if value < node.name and node.leftName is not None:
